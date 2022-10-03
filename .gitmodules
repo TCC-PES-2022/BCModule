@@ -1,0 +1,4 @@
+[submodule "modules/ARINC615AManager"]
+	path = modules/ARINC615AManager
+	url = https://github.com/TCC-PES-2022/ARINC615AManager.git
+	branch = main
