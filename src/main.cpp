@@ -3,7 +3,18 @@
 
 #include <cjson/cJSON.h>
 
+#include "BCCommunicator.h"
+
 #define CONFIG_FILE "bcconfig.json"
+
+BCCommunicator *communicator;
+bool stopBCModule = false;
+
+void signal_handler(int signum)
+{
+    std::cout << "Interrupt signal (" << signum << ") received." << std::endl;
+    stopBCModule = true;
+}
 
 void parse_configuration_file()
 {
@@ -93,6 +104,11 @@ void parse_configuration_file()
         exit(1);
     }
 
+    communicator->setTftpServerPort(tftpTargetHardwareServerPort->valueint);
+    communicator->setTftpServerTimeout(tftpTargetHardwareServerTimeout->valueint);
+    communicator->setTftpDataLoaderIp(tftpDataLoaderServerIp->valuestring);
+    communicator->setTftpDataLoaderPort(tftpDataLoaderServerPort->valueint);
+
     std::cout << "###############################################" << std::endl;
     std::cout << "Configuration parsed:" << std::endl;
     std::cout << "TFTP TargetHardware server port: " << tftpTargetHardwareServerPort->valueint << std::endl;
@@ -102,11 +118,32 @@ void parse_configuration_file()
     std::cout << "###############################################" << std::endl;
 }
 
+void register_signal_handlers()
+{
+    std::cout << "Registering signal handlers" << std::endl;
+    signal(SIGINT, signal_handler);
+}
+
 int main(int argc, char const *argv[])
 {
     std::cout << "###############################################" << std::endl;
     std::cout << "################## B/C Module #################" << std::endl;
     std::cout << "###############################################" << std::endl;
+
+    communicator = new BCCommunicator();
+
     parse_configuration_file();
+    register_signal_handlers();
+
+    communicator->listen();
+
+    while (!stopBCModule)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    communicator->stopListening();
+    delete communicator;
+
     return 0;
 }
