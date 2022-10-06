@@ -5,3 +5,9 @@
 [submodule "modules/tinyxml2"]
 	path = modules/tinyxml2
 	url = https://github.com/leethomason/tinyxml2.git
+[submodule "modules/libgcrypt"]
+	path = modules/libgcrypt
+	url = git://git.gnupg.org/libgcrypt.git
+[submodule "modules/libgpg-error"]
+	path = modules/libgpg-error
+	url = git://git.gnupg.org/libgpg-error.git
