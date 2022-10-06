@@ -8,6 +8,7 @@
 
 #include "TFTPServer.h"
 #include "BCUploader.h"
+#include "BCAuthenticator.h"
 
 class BCCommunicator
 {
@@ -21,10 +22,13 @@ public:
     void setTftpDataLoaderIp(std::string ip);
     void setTftpDataLoaderPort(int port);
 
+    bool isAuthenticated();
+
     void listen();
     void stopListening();
 
 private:
+    BCAuthenticator *authenticator;
     BCUploader *uploader;
     TFTPServer *tftpServer;
     std::thread *tftpServerThread;

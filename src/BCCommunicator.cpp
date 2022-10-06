@@ -8,6 +8,7 @@ BCCommunicator::BCCommunicator()
 
     tftpServer = new TFTPServer();
     uploader = new BCUploader();
+    authenticator = new BCAuthenticator();
 
     tftpServerThread = nullptr;
 
@@ -31,6 +32,7 @@ BCCommunicator::~BCCommunicator()
 
     delete tftpServerThread;
     delete uploader;
+    delete authenticator;
 }
 
 void BCCommunicator::setTftpServerPort(int port)
@@ -50,6 +52,11 @@ void BCCommunicator::setTftpDataLoaderIp(std::string ip)
 void BCCommunicator::setTftpDataLoaderPort(int port)
 {
     uploader->setTftpDataLoaderPort(port);
+}
+
+bool BCCommunicator::isAuthenticated()
+{
+    return authenticator->isAuthenticated();
 }
 
 TftpServerOperationResult BCCommunicator::sectionStartedCbk(

@@ -74,6 +74,10 @@ TftpServerOperationResult BCUploader::handleFile(ITFTPSection *sectionHandler,
         std::cout << "- Load Upload Initialization" << std::endl;
         InitializationFileARINC615A initFile(cleanFileNameStr);
 
+        // TODO: This check should be called by the UploadTargetHardwareARINC615A
+        //       implement a callback for it.
+        if (communicator->isAuthenticated())
+        {
             createUploader(baseFileNameStr);
             if (uploaders[baseFileNameStr]->loadUploadInitialization(
                     fd, bufferSize, fileNameStr) == UploadOperationResult::UPLOAD_OPERATION_OK)
@@ -86,6 +90,12 @@ TftpServerOperationResult BCUploader::handleFile(ITFTPSection *sectionHandler,
                 initFile.setOperationAcceptanceStatusCode(INITIALIZATION_UPLOAD_IS_DENIED);
                 initFile.setStatusDescription("Internal error.");
             }
+        }
+        else
+        {
+            initFile.setOperationAcceptanceStatusCode(INITIALIZATION_UPLOAD_IS_DENIED);
+            initFile.setStatusDescription("Authentication is required.");
+        }
 
         if (initFileBuffer == nullptr)
         {
