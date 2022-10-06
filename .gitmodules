@@ -2,3 +2,6 @@
 	path = modules/ARINC615AManager
 	url = https://github.com/TCC-PES-2022/ARINC615AManager.git
 	branch = main
+[submodule "modules/tinyxml2"]
+	path = modules/tinyxml2
+	url = https://github.com/leethomason/tinyxml2.git
