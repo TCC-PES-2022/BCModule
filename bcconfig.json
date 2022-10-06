@@ -1,0 +1,10 @@
+{
+  "tftpDataLoaderServer": {
+    "ip": "127.0.0.1",
+    "port": 5959
+  },
+  "tftpTargetHardwareServer": {
+    "port": 59595,
+    "timeout": 300
+  }
+}
