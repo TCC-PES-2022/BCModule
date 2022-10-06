@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <thread>
+#include <unordered_map>
 
 #include "IFileHandler.h"
 #include "UploadTargetHardwareARINC615A.h"
@@ -26,6 +27,16 @@ public:
     void notifySectionFinished(ITFTPSection *sectionHandler) override;
 
 private:
+    static UploadOperationResult checkFilesCbk(
+        std::vector<std::string> files,
+        std::string &checkDescription,
+        void *context);
+    static UploadOperationResult transmissionCheckCbk(
+        std::string &checkDescription,
+        void *context);
+
+    std::vector<std::string> receivedImages;
+    std::unordered_map<std::string, std::vector<std::pair<std::string, std::string>>> compatibilityFileContent;
 
     std::shared_ptr<std::vector<uint8_t>> initFileBuffer;
 
