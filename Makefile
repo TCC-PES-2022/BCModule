@@ -33,6 +33,20 @@ ARINC615AManager:
 	cd modules/ARINC615AManager && make dependencies && \
 	make -j$(shell echo $$((`nproc`))) && make install
 
+tinyxml2:
+	cd modules/tinyxml2 && make -j16 && cp libtinyxml2.a $(DEP_PATH)/lib && \
+	cp *.h $(DEP_PATH)/include
+
+libgpg-error:
+	cd modules/libgpg-error && ./autogen.sh &&  \
+	./configure --enable-maintainer-mode --enable-static --disable-shared \
+	--prefix=$(INSTALL_PATH) && make -j$(shell echo $$((`nproc`))) && make install
+
+libgcrypt: libgpg-error
+	cd modules/libgcrypt && ./autogen.sh &&  \
+	./configure --enable-maintainer-mode --enable-static --disable-shared \
+	--prefix=$(INSTALL_PATH) && make -j$(shell echo $$((`nproc`))) && make install
+
 $(TARGET): $(OBJ)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ) $(LINKFLAGS) $(INCDIRS) $(LDFLAGS) $(LDLIBS)
 
@@ -50,7 +64,7 @@ makedir:
 	@mkdir -p $(OBJDIRS) $(BIN_PATH)
 
 .PHONY: deps
-deps: $(DEPS)
+deps: makedir $(DEPS)
 
 .PHONY: all
 all: makedir $(TARGET)
@@ -66,7 +80,7 @@ debug: makedir $(TARGET)
 
 .PHONY: run
 run: 
-	./$(TARGET)
+	LD_LIBRARY_PATH=/opt/fls/lib ./$(TARGET)
 
 .PHONY: install
 install:

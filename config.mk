@@ -3,7 +3,7 @@ VERSION = 0.1
 
 # paths
 DEST 	:= /opt/fls
-DEPS 	:= ARINC615AManager
+DEPS 	:= ARINC615AManager tinyxml2 libgpg-error libgcrypt
 
 INSTALL_PATH 	:= $(DEST)
 DEP_PATH 		:= $(DEST)
@@ -14,7 +14,8 @@ DBGFLAGS 	:= -g -ggdb
 TESTFLAGS 	:= -fprofile-arcs -ftest-coverage --coverage
 LINKFLAGS 	:= 
 LDFLAGS  	:= -L$(DEP_PATH)/lib
-LDLIBS   	:= -larinc615a
+LDLIBS   	:= -larinc615a -ltransfer -ltftp -ltftpd -lcjson -ltinyxml2
+LDLIBS 		+= -lgcrypt -lgpg-error
 
 COBJFLAGS 	:= $(CXXFLAGS) -c
 test: COBJFLAGS 	+= $(TESTFLAGS)
