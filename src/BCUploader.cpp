@@ -87,12 +87,14 @@ TftpServerOperationResult BCUploader::handleFile(ITFTPSection *sectionHandler,
             }
             else
             {
+                std::cout << "*** INTERNAL ERROR ***" << std::endl;
                 initFile.setOperationAcceptanceStatusCode(INITIALIZATION_UPLOAD_IS_DENIED);
                 initFile.setStatusDescription("Internal error.");
             }
         }
         else
         {
+            std::cout << "*** AUTHENTICATION IS REQUIRED ***" << std::endl;
             initFile.setOperationAcceptanceStatusCode(INITIALIZATION_UPLOAD_IS_DENIED);
             initFile.setStatusDescription("Authentication is required.");
         }
