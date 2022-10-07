@@ -1,28 +1,28 @@
-#include "BCCommunicator.h"
+#include "BLCommunicator.h"
 #include "UploadBaseARINC615A.h"
 #include "InitializationFileARINC615A.h"
 
-BCCommunicator::BCCommunicator()
+BLCommunicator::BLCommunicator()
 {
-    std::cout << "Creating BCCommunicator" << std::endl;
+    std::cout << "Creating BLCommunicator" << std::endl;
 
     tftpServer = new TFTPServer();
-    uploader = new BCUploader();
-    authenticator = new BCAuthenticator();
+    uploader = new BLUploader();
+    authenticator = new BLAuthenticator();
 
     tftpServerThread = nullptr;
 
     tftpServer->setPort(DEFAULT_ARINC615A_TFTP_PORT);
 
-    tftpServer->registerSectionStartedCallback(BCCommunicator::sectionStartedCbk, this);
-    tftpServer->registerSectionFinishedCallback(BCCommunicator::sectionFinishedCbk, this);
-    tftpServer->registerOpenFileCallback(BCCommunicator::openFileCbk, this);
-    tftpServer->registerCloseFileCallback(BCCommunicator::closeFileCbk, this);
+    tftpServer->registerSectionStartedCallback(BLCommunicator::sectionStartedCbk, this);
+    tftpServer->registerSectionFinishedCallback(BLCommunicator::sectionFinishedCbk, this);
+    tftpServer->registerOpenFileCallback(BLCommunicator::openFileCbk, this);
+    tftpServer->registerCloseFileCallback(BLCommunicator::closeFileCbk, this);
 }
 
-BCCommunicator::~BCCommunicator()
+BLCommunicator::~BLCommunicator()
 {
-    std::cout << "Destroying BCCommunicator" << std::endl;
+    std::cout << "Destroying BLCommunicator" << std::endl;
 
     if (tftpServerThread != nullptr && tftpServerThread->joinable())
     {
@@ -35,31 +35,31 @@ BCCommunicator::~BCCommunicator()
     delete authenticator;
 }
 
-void BCCommunicator::setTftpServerPort(int port)
+void BLCommunicator::setTftpServerPort(int port)
 {
     tftpServer->setPort(port);
 }
 
-void BCCommunicator::setTftpServerTimeout(int timeout)
+void BLCommunicator::setTftpServerTimeout(int timeout)
 {
     tftpServer->setTimeout(timeout);
 }
 
-void BCCommunicator::setTftpDataLoaderIp(std::string ip)
+void BLCommunicator::setTftpDataLoaderIp(std::string ip)
 {
     uploader->setTftpDataLoaderIp(ip);
 }
-void BCCommunicator::setTftpDataLoaderPort(int port)
+void BLCommunicator::setTftpDataLoaderPort(int port)
 {
     uploader->setTftpDataLoaderPort(port);
 }
 
-bool BCCommunicator::isAuthenticated()
+bool BLCommunicator::isAuthenticated()
 {
     return authenticator->isAuthenticated();
 }
 
-TftpServerOperationResult BCCommunicator::sectionStartedCbk(
+TftpServerOperationResult BLCommunicator::sectionStartedCbk(
     ITFTPSection *sectionHandler,
     void *context)
 {
@@ -74,7 +74,7 @@ TftpServerOperationResult BCCommunicator::sectionStartedCbk(
     return TftpServerOperationResult::TFTP_SERVER_OK;
 }
 
-TftpServerOperationResult BCCommunicator::sectionFinishedCbk(
+TftpServerOperationResult BLCommunicator::sectionFinishedCbk(
     ITFTPSection *sectionHandler,
     void *context)
 {
@@ -86,7 +86,7 @@ TftpServerOperationResult BCCommunicator::sectionFinishedCbk(
               << "ID: " << id << ", "
               << "IP: " << ip << std::endl;
 
-    BCCommunicator *thiz = (BCCommunicator *)context;
+    BLCommunicator *thiz = (BLCommunicator *)context;
     if (thiz != nullptr)
     {
         thiz->uploader->notifySectionFinished(sectionHandler);
@@ -95,7 +95,7 @@ TftpServerOperationResult BCCommunicator::sectionFinishedCbk(
     return TftpServerOperationResult::TFTP_SERVER_OK;
 }
 
-TftpServerOperationResult BCCommunicator::openFileCbk(
+TftpServerOperationResult BLCommunicator::openFileCbk(
     ITFTPSection *sectionHandler,
     FILE **fd,
     char *filename,
@@ -113,7 +113,7 @@ TftpServerOperationResult BCCommunicator::openFileCbk(
               << "Filename: " << filename << ", "
               << "Mode: " << mode << std::endl;
 
-    BCCommunicator *thiz = (BCCommunicator *)context;
+    BLCommunicator *thiz = (BLCommunicator *)context;
 
     std::string filenameStr(filename);
     if (thiz != nullptr &&
@@ -145,7 +145,7 @@ TftpServerOperationResult BCCommunicator::openFileCbk(
     return TftpServerOperationResult::TFTP_SERVER_OK;
 }
 
-TftpServerOperationResult BCCommunicator::closeFileCbk(
+TftpServerOperationResult BLCommunicator::closeFileCbk(
     ITFTPSection *sectionHandler,
     FILE *fd,
     void *context)
@@ -166,13 +166,13 @@ TftpServerOperationResult BCCommunicator::closeFileCbk(
     return TftpServerOperationResult::TFTP_SERVER_OK;
 }
 
-void BCCommunicator::listen()
+void BLCommunicator::listen()
 {
     tftpServerThread = new std::thread([this]()
                                        { tftpServer->startListening(); });
 }
 
-void BCCommunicator::stopListening()
+void BLCommunicator::stopListening()
 {
     tftpServer->stopListening();
 }

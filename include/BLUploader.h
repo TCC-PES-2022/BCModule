@@ -1,5 +1,5 @@
-#ifndef BCUPLOADER_H
-#define BCUPLOADER_H
+#ifndef BLUPLOADER_H
+#define BLUPLOADER_H
 
 #include <iostream>
 #include <thread>
@@ -8,11 +8,11 @@
 #include "IFileHandler.h"
 #include "UploadTargetHardwareARINC615A.h"
 
-class BCUploader : public IFileHandler
+class BLUploader : public IFileHandler
 {
 public:
-    BCUploader();
-    ~BCUploader();
+    BLUploader();
+    ~BLUploader();
 
     void setTftpDataLoaderIp(std::string ip);
     void setTftpDataLoaderPort(int port);
@@ -51,4 +51,4 @@ private:
     void uploadersRelease();
 };
 
-#endif // BCUPLOADER_H
+#endif // BLUPLOADER_H

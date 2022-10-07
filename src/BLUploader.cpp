@@ -1,5 +1,5 @@
-#include "BCCommunicator.h"
-#include "BCUploader.h"
+#include "BLCommunicator.h"
+#include "BLUploader.h"
 #include "InitializationFileARINC615A.h"
 
 #include "tinyxml2.h"
@@ -10,9 +10,9 @@
 #define PN_SIZE 4
 #define SHA256_SIZE 32
 
-BCUploader::BCUploader()
+BLUploader::BLUploader()
 {
-    std::cout << "Creating BCUploader" << std::endl;
+    std::cout << "Creating BLUploader" << std::endl;
 
     tftpDataLoaderIp = DEFAULT_HOST;
     tftpDataLoaderPort = DEFAULT_ARINC615A_TFTP_PORT;
@@ -21,12 +21,12 @@ BCUploader::BCUploader()
     initFileBuffer = nullptr;
 
     runUploadersRelease = true;
-    uploadersReleaseThread = new std::thread(&BCUploader::uploadersRelease, this);
+    uploadersReleaseThread = new std::thread(&BLUploader::uploadersRelease, this);
 }
 
-BCUploader::~BCUploader()
+BLUploader::~BLUploader()
 {
-    std::cout << "Destroying BCUploader" << std::endl;
+    std::cout << "Destroying BLUploader" << std::endl;
 
     if (initFileBuffer != nullptr)
     {
@@ -44,24 +44,24 @@ BCUploader::~BCUploader()
     uploaders.clear();
 }
 
-void BCUploader::setTftpDataLoaderIp(std::string ip)
+void BLUploader::setTftpDataLoaderIp(std::string ip)
 {
     tftpDataLoaderIp = ip;
 }
 
-void BCUploader::setTftpDataLoaderPort(int port)
+void BLUploader::setTftpDataLoaderPort(int port)
 {
     tftpDataLoaderPort = port;
 }
 
-TftpServerOperationResult BCUploader::handleFile(ITFTPSection *sectionHandler,
+TftpServerOperationResult BLUploader::handleFile(ITFTPSection *sectionHandler,
                                                  FILE **fd,
                                                  char *filename,
                                                  char *mode,
                                                  size_t *bufferSize,
                                                  void *context)
 {
-    BCCommunicator *communicator = (BCCommunicator *)context;
+    BLCommunicator *communicator = (BLCommunicator *)context;
 
     std::string fileNameStr(filename);
     std::string cleanFileNameStr = fileNameStr.substr(fileNameStr.find_last_of("/") + 1);
@@ -145,7 +145,7 @@ TftpServerOperationResult BCUploader::handleFile(ITFTPSection *sectionHandler,
     return TftpServerOperationResult::TFTP_SERVER_OK;
 }
 
-void BCUploader::notifySectionFinished(ITFTPSection *sectionHandler)
+void BLUploader::notifySectionFinished(ITFTPSection *sectionHandler)
 {
     for (auto it = uploaders.begin(); it != uploaders.end(); ++it)
     {
@@ -153,7 +153,7 @@ void BCUploader::notifySectionFinished(ITFTPSection *sectionHandler)
     }
 }
 
-UploadOperationResult BCUploader::checkFilesCbk(
+UploadOperationResult BLUploader::checkFilesCbk(
     std::vector<std::string> files,
     std::string &checkDescription,
     void *context)
@@ -165,7 +165,7 @@ UploadOperationResult BCUploader::checkFilesCbk(
         return UploadOperationResult::UPLOAD_OPERATION_ERROR;
     }
 
-    BCUploader *thiz = (BCUploader *)context;
+    BLUploader *thiz = (BLUploader *)context;
 
     std::cout << "-> Integrity check" << std::endl;
     for (auto &file : files)
@@ -276,7 +276,7 @@ UploadOperationResult BCUploader::checkFilesCbk(
     return UploadOperationResult::UPLOAD_OPERATION_OK;
 }
 
-UploadOperationResult BCUploader::transmissionCheckCbk(
+UploadOperationResult BLUploader::transmissionCheckCbk(
     std::string &checkDescription,
     void *context)
 {
@@ -288,7 +288,7 @@ UploadOperationResult BCUploader::transmissionCheckCbk(
         return UploadOperationResult::UPLOAD_OPERATION_ERROR;
     }
 
-    BCUploader *thiz = (BCUploader *)context;
+    BLUploader *thiz = (BLUploader *)context;
 
     std::cout << "-> Checking compatibility" << std::endl;
 
@@ -317,18 +317,18 @@ UploadOperationResult BCUploader::transmissionCheckCbk(
     return UploadOperationResult::UPLOAD_OPERATION_OK;
 }
 
-void BCUploader::createUploader(std::string fileName)
+void BLUploader::createUploader(std::string fileName)
 {
     std::lock_guard<std::mutex> lock(uploadersMutex);
     if (uploaders.find(fileName) == uploaders.end())
     {
         uploaders[fileName] = new UploadTargetHardwareARINC615A(tftpDataLoaderIp, tftpDataLoaderPort);
-        uploaders[fileName]->registerCheckFilesCallback(BCUploader::checkFilesCbk, this);
-        uploaders[fileName]->registerTransmissionCheckCallback(BCUploader::transmissionCheckCbk, this);
+        uploaders[fileName]->registerCheckFilesCallback(BLUploader::checkFilesCbk, this);
+        uploaders[fileName]->registerTransmissionCheckCallback(BLUploader::transmissionCheckCbk, this);
     }
 }
 
-void BCUploader::uploadersRelease()
+void BLUploader::uploadersRelease()
 {
     while (runUploadersRelease)
     {

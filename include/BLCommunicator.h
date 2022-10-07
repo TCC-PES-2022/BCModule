@@ -1,5 +1,5 @@
-#ifndef BCCOMMUNICATOR_H
-#define BCCOMMUNICATOR_H
+#ifndef BLCOMMUNICATOR_H
+#define BLCOMMUNICATOR_H
 
 #include <iostream>
 #include <thread>
@@ -7,14 +7,14 @@
 #include <condition_variable>
 
 #include "TFTPServer.h"
-#include "BCUploader.h"
-#include "BCAuthenticator.h"
+#include "BLUploader.h"
+#include "BLAuthenticator.h"
 
-class BCCommunicator
+class BLCommunicator
 {
 public:
-    BCCommunicator();
-    ~BCCommunicator();
+    BLCommunicator();
+    ~BLCommunicator();
 
     void setTftpServerPort(int port);
     void setTftpServerTimeout(int timeout);
@@ -28,8 +28,8 @@ public:
     void stopListening();
 
 private:
-    BCAuthenticator *authenticator;
-    BCUploader *uploader;
+    BLAuthenticator *authenticator;
+    BLUploader *uploader;
     TFTPServer *tftpServer;
     std::thread *tftpServerThread;
 
@@ -55,4 +55,4 @@ private:
         void *context);
 };
 
-#endif // BCCOMMUNICATOR_H
+#endif // BLCOMMUNICATOR_H

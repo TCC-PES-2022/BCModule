@@ -3,17 +3,17 @@
 
 #include <cjson/cJSON.h>
 
-#include "BCCommunicator.h"
+#include "BLCommunicator.h"
 
-#define CONFIG_FILE "bcconfig.json"
+#define CONFIG_FILE "blconfig.json"
 
-BCCommunicator *communicator;
-bool stopBCModule = false;
+BLCommunicator *communicator;
+bool stopBLModule = false;
 
 void signal_handler(int signum)
 {
     std::cout << "Interrupt signal (" << signum << ") received." << std::endl;
-    stopBCModule = true;
+    stopBLModule = true;
 }
 
 void parse_configuration_file()
@@ -127,17 +127,17 @@ void register_signal_handlers()
 int main(int argc, char const *argv[])
 {
     std::cout << "###############################################" << std::endl;
-    std::cout << "################## B/C Module #################" << std::endl;
+    std::cout << "################## B/L Module #################" << std::endl;
     std::cout << "###############################################" << std::endl;
 
-    communicator = new BCCommunicator();
+    communicator = new BLCommunicator();
 
     parse_configuration_file();
     register_signal_handlers();
 
     communicator->listen();
 
-    while (!stopBCModule)
+    while (!stopBLModule)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }

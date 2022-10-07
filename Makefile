@@ -6,7 +6,7 @@ OBJ_PATH := obj
 SRC_PATH := src
 INCLUDE_PATH := include
 
-TARGET_NAME := bcmodule
+TARGET_NAME := blmodule
 TARGET := $(OUT_PATH)/$(TARGET_NAME)
 
 LDFLAGS += $(addsuffix /$(LIB_PATH), $(addprefix -Lmodules/,$(DEPS)))
@@ -76,7 +76,7 @@ makedir:
 
 .PHONY: deps
 deps: makedir $(DEPS)
-	find $(DEP_PATH) -type f -name "*.a" -exec strip --strip-unneeded {} \;
+	strip --strip-unneeded $(DEP_PATH)/lib/*.a
 
 .PHONY: all
 all: makedir $(TARGET)
