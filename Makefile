@@ -76,7 +76,7 @@ makedir:
 
 .PHONY: deps
 deps: makedir $(DEPS)
-	strip --strip-unneeded $(DEP_PATH)/lib/*.a
+	find $(DEP_PATH) -type f -name "*.a" -exec strip --strip-unneeded {} \;
 
 .PHONY: all
 all: makedir $(TARGET)
