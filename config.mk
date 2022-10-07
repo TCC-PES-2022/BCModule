@@ -2,20 +2,19 @@
 VERSION = 0.1
 
 # paths
-DEST 	:= /opt/fls
-DEPS 	:= ARINC615AManager tinyxml2 libgpg-error libgcrypt
+DESTDIR 	?= /tmp
+DEP_PATH 	?= $(DESTDIR)
 
-INSTALL_PATH 	:= $(DEST)
-DEP_PATH 		:= $(DEST)
+DEPS 		:= ARINC615AManager tinyxml2 libgpg-error libgcrypt
 
 CXX 		?=
 CXXFLAGS 	:= -Wall -Werror -std=c++11 -pthread
+LDFLAGS  	:= -L$(DEP_PATH)/lib
+LDLIBS   	:= -larinc615a -ltransfer -ltftp -ltftpd -ltinyxml2
+LDLIBS 		+= -lgcrypt -lgpg-error
+LDLIBS 		+= $(DEP_PATH)/lib/libcjson.a
 DBGFLAGS 	:= -g -ggdb
 TESTFLAGS 	:= -fprofile-arcs -ftest-coverage --coverage
-LINKFLAGS 	:= 
-LDFLAGS  	:= -L$(DEP_PATH)/lib
-LDLIBS   	:= -larinc615a -ltransfer -ltftp -ltftpd -lcjson -ltinyxml2
-LDLIBS 		+= -lgcrypt -lgpg-error
 
 COBJFLAGS 	:= $(CXXFLAGS) -c
 test: COBJFLAGS 	+= $(TESTFLAGS)

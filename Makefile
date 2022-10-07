@@ -1,13 +1,13 @@
 include config.mk
 
 # path macros
-BIN_PATH := bin
+OUT_PATH := bin
 OBJ_PATH := obj
 SRC_PATH := src
 INCLUDE_PATH := include
 
 TARGET_NAME := bcmodule
-TARGET := $(BIN_PATH)/$(TARGET_NAME)
+TARGET := $(OUT_PATH)/$(TARGET_NAME)
 
 LDFLAGS += $(addsuffix /$(LIB_PATH), $(addprefix -Lmodules/,$(DEPS)))
 
@@ -20,57 +20,67 @@ OBJ := $(subst $(SRC_PATH),$(OBJ_PATH),$(SRC:%.cpp=%.o))
 OBJDIRS:=$(dir $(OBJ))
 
 # clean files list
-DISTCLEAN_LIST := $(OBJ)
-CLEAN_LIST := $(DISTCLEAN_LIST)
-
-CLEAN_DEPS := $(DEPS)
+CLEAN_LIST := $(OBJ)
 
 # default rule
-default: target
+default: all
 
 # non-phony targets
-ARINC615AManager:
-	cd modules/ARINC615AManager && make dependencies && \
-	make -j$(shell echo $$((`nproc`))) && make install
+$(DEPS): $@
+	@echo "\n\n *** Building $@ *** \n\n"
+	cd modules/$@ && $(MAKE) deps && \
+	$(MAKE) $(DEP_RULE) -j$(shell echo $$((`nproc`))) && \
+	$(MAKE) install DESTDIR=$(DEP_PATH)
 
 tinyxml2:
-	cd modules/tinyxml2 && make -j16 && cp libtinyxml2.a $(DEP_PATH)/lib && \
-	cp *.h $(DEP_PATH)/include
+	@echo "\n\n *** Building $@ *** \n\n"
+	cd modules/tinyxml2 && make -j$(shell echo $$((`nproc`))) && \
+	cp libtinyxml2.a $(DEP_PATH)/lib && cp *.h $(DEP_PATH)/include
 
 libgpg-error:
-	cd modules/libgpg-error && ./autogen.sh &&  \
-	./configure --enable-maintainer-mode --enable-static --disable-shared \
-	--prefix=$(INSTALL_PATH) && make -j$(shell echo $$((`nproc`))) && make install
+	@echo "\n\n *** Building $@ *** \n\n"
+	cd modules/libgpg-error && \
+	./autogen.sh && \
+	./configure --enable-maintainer-mode --enable-static --disable-shared  \
+	--prefix= && \
+	make -j$(shell echo $$((`nproc`))) && \
+	make install DESTDIR=$(DEP_PATH)
 
 libgcrypt: libgpg-error
-	cd modules/libgcrypt && ./autogen.sh &&  \
+	@echo "\n\n *** Building $@ *** \n\n"
+	export CPATH="$(CPATH):$(DEP_PATH)/include" && \
+	export LIBRARY_PATH="$(LIBRARY_PATH):$(DEP_PATH)/lib" && \
+	cd modules/libgcrypt && \
+	./autogen.sh  && \
 	./configure --enable-maintainer-mode --enable-static --disable-shared \
-	--prefix=$(INSTALL_PATH) && make -j$(shell echo $$((`nproc`))) && make install
+	--with-libgpg-error-prefix=$(DEP_PATH) \
+	--prefix= && \
+	make -j$(shell echo $$((`nproc`))) &&\
+	make install DESTDIR=$(DEP_PATH)
 
 $(TARGET): $(OBJ)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ) $(LINKFLAGS) $(INCDIRS) $(LDFLAGS) $(LDLIBS)
 
 $(OBJ_PATH)/%.o: $(SRC_PATH)/%.c
-	@echo "Compiling $<"
+	@echo "Building $<"
 	$(CC) $(CCOBJFLAGS) -o $@ $< $(INCDIRS)
 
 $(OBJ_PATH)/%.o: $(SRC_PATH)/%.cpp
-	@echo "Compiling $<"
+	@echo "Building $<"
 	$(CXX) $(COBJFLAGS) -o $@ $< $(INCDIRS)
 
 # phony rules
 .PHONY: makedir
 makedir:
-	@mkdir -p $(OBJDIRS) $(BIN_PATH)
+	@mkdir -p $(OBJDIRS) $(OUT_PATH)
 
 .PHONY: deps
 deps: makedir $(DEPS)
+	find $(DEP_PATH) -type f -name "*.a" -exec strip --strip-unneeded {} \;
 
 .PHONY: all
 all: makedir $(TARGET)
-
-.PHONY: target
-target: makedir $(TARGET)
+	strip --strip-unneeded $(TARGET)
 
 .PHONY: test
 test: makedir $(TARGET)
@@ -80,27 +90,19 @@ debug: makedir $(TARGET)
 
 .PHONY: run
 run: 
-	LD_LIBRARY_PATH=/opt/fls/lib ./$(TARGET)
+	./$(TARGET)
 
 .PHONY: install
 install:
-	mkdir -p $(INSTALL_PATH)/lib $(INSTALL_PATH)/include
-	cp -f $(BIN_PATH)/*.so $(INSTALL_PATH)/lib
-	cp -f $(shell find $(INCLUDE_PATH) -type f -name "*.h") $(INSTALL_PATH)/include
+	@echo "\n\n *** Installing BCModule to $(DESTDIR) *** \n\n"
+	mkdir -p $(DESTDIR)/bin
+	cp -f $(TARGET) $(DESTDIR)/bin
 
-# TODO: remove only what we installed
-.PHONY: uninstall
-uninstall:
-	rm -rf $(INSTALL_PATH)/lib $(INSTALL_PATH)/include
+# TODO: create uninstall rule
 
 .PHONY: clean
 clean:
 	@echo CLEAN $(CLEAN_LIST)
-	@rm -f $(CLEAN_LIST)
-
-.PHONY: distclean
-distclean:
-	@echo CLEAN $(DISTCLEAN_LIST)
-	@rm -f $(DISTCLEAN_LIST)
+	@rm -rf $(CLEAN_LIST)
 	@rm -rf $(OBJ_PATH)
-	@rm -rf $(BIN_PATH)
+	@rm -rf $(OUT_PATH)
