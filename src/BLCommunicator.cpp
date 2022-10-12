@@ -48,10 +48,12 @@ void BLCommunicator::setTftpServerTimeout(int timeout)
 void BLCommunicator::setTftpDataLoaderIp(std::string ip)
 {
     uploader->setTftpDataLoaderIp(ip);
+    authenticator->setTftpDataLoaderIp(ip);
 }
 void BLCommunicator::setTftpDataLoaderPort(int port)
 {
     uploader->setTftpDataLoaderPort(port);
+    authenticator->setTftpDataLoaderPort(port);
 }
 
 bool BLCommunicator::isAuthenticated()
@@ -90,6 +92,7 @@ TftpServerOperationResult BLCommunicator::sectionFinishedCbk(
     if (thiz != nullptr)
     {
         thiz->uploader->notifySectionFinished(sectionHandler);
+        thiz->authenticator->notifySectionFinished(sectionHandler);
     }
 
     return TftpServerOperationResult::TFTP_SERVER_OK;
@@ -121,6 +124,12 @@ TftpServerOperationResult BLCommunicator::openFileCbk(
          (filenameStr.find(UPLOAD_LOAD_UPLOAD_REQUEST_FILE_EXTENSION) != std::string::npos)))
     {
         return thiz->uploader->handleFile(sectionHandler, fd, filename, mode, bufferSize, context);
+    }
+    else if (thiz != nullptr &&
+        ((filenameStr.find(INITIALIZATION_AUTHENTICATION_FILE_EXTENSION) != std::string::npos) ||
+         (filenameStr.find(LOAD_AUTHENTICATION_REQUEST_FILE_EXTENSION) != std::string::npos)))
+    {
+        return thiz->authenticator->handleFile(sectionHandler, fd, filename, mode, bufferSize, context);
     }
     else
     {
