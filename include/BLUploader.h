@@ -27,6 +27,20 @@ public:
     void notifySectionFinished(ITFTPSection *sectionHandler) override;
 
 private:
+
+    class UploaderContext
+    {
+    public:
+        UploaderContext()
+        {
+            uploader = nullptr;
+            waitingLUR = false;
+        }
+        UploadTargetHardwareARINC615A *uploader;
+        bool waitingLUR;
+    };
+    UploaderContext *uploader;
+
     static UploadOperationResult checkFilesCbk(
         std::vector<std::string> files,
         std::string &checkDescription,
@@ -45,10 +59,7 @@ private:
 
     void createUploader(std::string fileName);
     std::mutex uploadersMutex;
-    std::unordered_map<std::string, UploadTargetHardwareARINC615A *> uploaders;
     std::thread *uploadersReleaseThread;
-    bool runUploadersRelease;
-    void uploadersRelease();
 };
 
 #endif // BLUPLOADER_H

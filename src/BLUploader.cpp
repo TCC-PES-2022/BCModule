@@ -17,11 +17,8 @@ BLUploader::BLUploader()
     tftpDataLoaderIp = DEFAULT_HOST;
     tftpDataLoaderPort = DEFAULT_ARINC615A_TFTP_PORT;
 
-    uploaders.clear();
+    uploader = nullptr;
     initFileBuffer = nullptr;
-
-    runUploadersRelease = true;
-    uploadersReleaseThread = new std::thread(&BLUploader::uploadersRelease, this);
 }
 
 BLUploader::~BLUploader()
@@ -34,14 +31,12 @@ BLUploader::~BLUploader()
         initFileBuffer = nullptr;
     }
 
-    runUploadersRelease = false;
-    if (uploadersReleaseThread != nullptr && uploadersReleaseThread->joinable())
+    if (uploader != nullptr)
     {
-        uploadersReleaseThread->join();
-        uploadersReleaseThread = nullptr;
+        delete uploader->uploader;
+        delete uploader;
+        uploader = nullptr;
     }
-
-    uploaders.clear();
 }
 
 void BLUploader::setTftpDataLoaderIp(std::string ip)
@@ -79,8 +74,10 @@ TftpServerOperationResult BLUploader::handleFile(ITFTPSection *sectionHandler,
         if (communicator->isAuthenticated(baseFileNameStr))
         {
             communicator->clearAuthentication(baseFileNameStr);
+
+            // TODO: Send WAIT if an uploader is already running
             createUploader(baseFileNameStr);
-            if (uploaders[baseFileNameStr]->loadUploadInitialization(
+            if (uploader->uploader->loadUploadInitialization(
                     fd, bufferSize, fileNameStr) == UploadOperationResult::UPLOAD_OPERATION_OK)
             {
                 // TODO: Clean authentication flag
@@ -124,10 +121,10 @@ TftpServerOperationResult BLUploader::handleFile(ITFTPSection *sectionHandler,
     else if (fileNameStr.find(UPLOAD_LOAD_UPLOAD_REQUEST_FILE_EXTENSION) !=
              std::string::npos)
     {
+        // std::lock_guard<std::mutex> lock(uploadersMutex);
         std::cout << "- Load Upload Request Detected" << std::endl;
 
-        createUploader(baseFileNameStr);
-        if (uploaders[baseFileNameStr]->loadUploadRequest(
+        if (uploader->uploader->loadUploadRequest(
                 fd, bufferSize, fileNameStr) != UploadOperationResult::UPLOAD_OPERATION_OK)
         {
             *fd = NULL;
@@ -137,6 +134,7 @@ TftpServerOperationResult BLUploader::handleFile(ITFTPSection *sectionHandler,
             }
             return TftpServerOperationResult::TFTP_SERVER_ERROR;
         }
+        uploader->waitingLUR = true;
     }
     else
     {
@@ -148,9 +146,11 @@ TftpServerOperationResult BLUploader::handleFile(ITFTPSection *sectionHandler,
 
 void BLUploader::notifySectionFinished(ITFTPSection *sectionHandler)
 {
-    for (auto it = uploaders.begin(); it != uploaders.end(); ++it)
+    // std::lock_guard<std::mutex> lock(uploadersMutex);
+    if (uploader != nullptr && uploader->waitingLUR)
     {
-        it->second->notify(NotifierEventType::NOTIFIER_EVENT_TFTP_SECTION_CLOSED);
+        uploader->waitingLUR = false;
+        uploader->uploader->notify(NotifierEventType::NOTIFIER_EVENT_TFTP_SECTION_CLOSED);
     }
 }
 
@@ -320,33 +320,14 @@ UploadOperationResult BLUploader::transmissionCheckCbk(
 
 void BLUploader::createUploader(std::string fileName)
 {
-    std::lock_guard<std::mutex> lock(uploadersMutex);
-    if (uploaders.find(fileName) == uploaders.end())
+    if (uploader != nullptr)
     {
-        uploaders[fileName] = new UploadTargetHardwareARINC615A(tftpDataLoaderIp, tftpDataLoaderPort);
-        uploaders[fileName]->registerCheckFilesCallback(BLUploader::checkFilesCbk, this);
-        uploaders[fileName]->registerTransmissionCheckCallback(BLUploader::transmissionCheckCbk, this);
+        delete uploader->uploader;
+        delete uploader;
     }
-}
 
-void BLUploader::uploadersRelease()
-{
-    while (runUploadersRelease)
-    {
-        for (auto it = uploaders.begin(); it != uploaders.end(); ++it)
-        {
-            std::lock_guard<std::mutex> lock(uploadersMutex);
-            UploadTargetHardwareARINC615AState state;
-            it->second->getState(state);
-            if (state == UploadTargetHardwareARINC615AState::FINISHED ||
-                state == UploadTargetHardwareARINC615AState::ERROR)
-            {
-                std::cout << "Releasing uploader: " << it->first << std::endl;
-                delete it->second;
-                uploaders.erase(it);
-                break;
-            }
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
+    uploader = new UploaderContext();
+    uploader->uploader = new UploadTargetHardwareARINC615A(tftpDataLoaderIp, tftpDataLoaderPort);
+    uploader->uploader->registerCheckFilesCallback(BLUploader::checkFilesCbk, this);
+    uploader->uploader->registerTransmissionCheckCallback(BLUploader::transmissionCheckCbk, this);
 }
