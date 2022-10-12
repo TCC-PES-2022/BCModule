@@ -11,3 +11,7 @@
 [submodule "modules/libgpg-error"]
 	path = modules/libgpg-error
 	url = git://git.gnupg.org/libgpg-error.git
+[submodule "modules/BLSecurityManager"]
+	path = modules/BLSecurityManager
+	url = https://github.com/TCC-PES-2022/BLSecurityManager.git
+	branch = main
