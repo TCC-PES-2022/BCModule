@@ -1,6 +1,7 @@
 #include "BLCommunicator.h"
 #include "UploadBaseARINC615A.h"
 #include "InitializationFileARINC615A.h"
+#include "InitializationAuthenticationFile.h"
 
 BLCommunicator::BLCommunicator()
 {
@@ -56,9 +57,14 @@ void BLCommunicator::setTftpDataLoaderPort(int port)
     authenticator->setTftpDataLoaderPort(port);
 }
 
-bool BLCommunicator::isAuthenticated()
+bool BLCommunicator::isAuthenticated(std::string baseFileName)
 {
-    return authenticator->isAuthenticated();
+    return authenticator->isAuthenticated(baseFileName);
+}
+
+void BLCommunicator::clearAuthentication(std::string baseFileName)
+{
+    return authenticator->clearAuthentication(baseFileName);
 }
 
 TftpServerOperationResult BLCommunicator::sectionStartedCbk(

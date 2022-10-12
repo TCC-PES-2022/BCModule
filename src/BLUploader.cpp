@@ -76,8 +76,9 @@ TftpServerOperationResult BLUploader::handleFile(ITFTPSection *sectionHandler,
 
         // TODO: This check should be called by the UploadTargetHardwareARINC615A
         //       implement a callback for it.
-        if (communicator->isAuthenticated())
+        if (communicator->isAuthenticated(baseFileNameStr))
         {
+            communicator->clearAuthentication(baseFileNameStr);
             createUploader(baseFileNameStr);
             if (uploaders[baseFileNameStr]->loadUploadInitialization(
                     fd, bufferSize, fileNameStr) == UploadOperationResult::UPLOAD_OPERATION_OK)

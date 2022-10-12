@@ -22,7 +22,8 @@ public:
     void setTftpDataLoaderIp(std::string ip);
     void setTftpDataLoaderPort(int port);
 
-    bool isAuthenticated();
+    void clearAuthentication(std::string baseFileName);
+    bool isAuthenticated(std::string baseFileName);
 
     void listen();
     void stopListening();
