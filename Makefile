@@ -32,32 +32,6 @@ $(DEPS): $@
 	$(MAKE) $(DEP_RULE) -j$(shell echo $$((`nproc`))) && \
 	$(MAKE) install DESTDIR=$(DEP_PATH)
 
-tinyxml2:
-	@echo "\n\n *** Building $@ *** \n\n"
-	cd modules/tinyxml2 && make -j$(shell echo $$((`nproc`))) && \
-	cp libtinyxml2.a $(DEP_PATH)/lib && cp *.h $(DEP_PATH)/include
-
-libgpg-error:
-	@echo "\n\n *** Building $@ *** \n\n"
-	cd modules/libgpg-error && \
-	./autogen.sh && \
-	./configure --enable-maintainer-mode --enable-static --disable-shared  \
-	--prefix= && \
-	make -j$(shell echo $$((`nproc`))) && \
-	make install DESTDIR=$(DEP_PATH)
-
-libgcrypt: libgpg-error
-	@echo "\n\n *** Building $@ *** \n\n"
-	export CPATH="$(CPATH):$(DEP_PATH)/include" && \
-	export LIBRARY_PATH="$(LIBRARY_PATH):$(DEP_PATH)/lib" && \
-	cd modules/libgcrypt && \
-	./autogen.sh  && \
-	./configure --enable-maintainer-mode --enable-static --disable-shared \
-	--with-libgpg-error-prefix=$(DEP_PATH) \
-	--prefix= && \
-	make -j$(shell echo $$((`nproc`))) &&\
-	make install DESTDIR=$(DEP_PATH)
-
 $(TARGET): $(OBJ)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ) $(LINKFLAGS) $(INCDIRS) $(LDFLAGS) $(LDLIBS)
 
@@ -76,7 +50,6 @@ makedir:
 
 .PHONY: deps
 deps: makedir $(DEPS)
-	strip --strip-unneeded $(DEP_PATH)/lib/*.a
 
 .PHONY: all
 all: makedir $(TARGET)
@@ -90,7 +63,7 @@ debug: makedir $(TARGET)
 
 .PHONY: run
 run: 
-	./$(TARGET)
+	LD_LIBRARY_PATH=$(DEP_PATH)/lib ./$(TARGET)
 
 .PHONY: install
 install:

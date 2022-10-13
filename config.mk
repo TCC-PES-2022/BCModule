@@ -5,14 +5,13 @@ VERSION = 0.1
 DESTDIR 	?= /tmp
 DEP_PATH 	?= $(DESTDIR)
 
-DEPS 		:= ARINC615AManager tinyxml2 libgpg-error libgcrypt
+DEPS 		:= ARINC615AManager BLSecurityManager
 
 CXX 		?=
 CXXFLAGS 	:= -Wall -Werror -std=c++11 -pthread
 LDFLAGS  	:= -L$(DEP_PATH)/lib
-LDLIBS   	:= -larinc615a -ltransfer -ltftp -ltftpd -ltinyxml2
-LDLIBS 		+= -lgcrypt -lgpg-error
-LDLIBS 		+= $(DEP_PATH)/lib/libcjson.a
+LDLIBS   	:= -larinc615a -lblsecurity -ltransfer -ltftp -ltftpd -ltinyxml2
+LDLIBS 		+= -lgcrypt -lgpg-error -lcjson
 DBGFLAGS 	:= -g -ggdb
 TESTFLAGS 	:= -fprofile-arcs -ftest-coverage --coverage
 
