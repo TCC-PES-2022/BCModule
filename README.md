@@ -12,7 +12,7 @@ To clone this repository, run:
 
 Before building your project, you may need to install some dependencies. To do so, run:
 
-    sudo apt install -y build-essential libcjson-dev libgcrypt-dev openssl libtinyxml2-dev
+    sudo apt install -y --allow-downgrades build-essential=12.9ubuntu3 libcjson-dev=1.7.15-1 libgcrypt20-dev=1.9.4-3ubuntu3 openssl=3.0.2-0ubuntu1 libtinyxml2-dev=9.0.0+dfsg-3
 
 Export the instalation path to the environment:
 
