@@ -73,8 +73,6 @@ TftpServerOperationResult BLUploader::handleFile(ITFTPSection *sectionHandler,
         //       implement a callback for it.
         if (communicator->isAuthenticated(baseFileNameStr))
         {
-            communicator->clearAuthentication(baseFileNameStr);
-
             // TODO: Send WAIT if an uploader is already running
             createUploader(baseFileNameStr);
             if (uploader->uploader->loadUploadInitialization(
@@ -121,6 +119,10 @@ TftpServerOperationResult BLUploader::handleFile(ITFTPSection *sectionHandler,
     else if (fileNameStr.find(UPLOAD_LOAD_UPLOAD_REQUEST_FILE_EXTENSION) !=
              std::string::npos)
     {
+        //TODO: If initiation fails, the operation will remain authenticated
+        //      Add a timeout to clear in case of upload failure before this step.
+        communicator->clearAuthentication(baseFileNameStr);
+
         // std::lock_guard<std::mutex> lock(uploadersMutex);
         std::cout << "- Load Upload Request Detected" << std::endl;
 
