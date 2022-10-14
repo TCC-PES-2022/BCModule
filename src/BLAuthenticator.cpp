@@ -29,7 +29,7 @@ BLAuthenticator::BLAuthenticator()
     std::cout << "Creating BLAuthenticator" << std::endl;
 
     tftpDataLoaderIp = DEFAULT_HOST;
-    tftpDataLoaderPort = DEFAULT_ARINC615A_TFTP_PORT;
+    tftpDataLoaderPort = DEFAULT_AUTHENTICATION_TFTP_PORT;
 
     initFileBuffer = nullptr;
 
