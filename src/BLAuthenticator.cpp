@@ -283,7 +283,7 @@ AuthenticationOperationResult BLAuthenticator::checkCertificateCbk(
     if (openssl_pid == 0)
     {
         std::ofstream certificateFile;
-        certificateFile.open("/tmp/certificate.crt");
+        certificateFile.open("/tmp/certificate.crt", std::ofstream::out | std::ofstream::trunc);
         if (!certificateFile.is_open())
         {
             printf("Error opening certificate file\n");
