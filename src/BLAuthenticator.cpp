@@ -257,8 +257,9 @@ AuthenticationOperationResult BLAuthenticator::checkCertificateCbk(
         }
 
         // HEX to ascii
-        char *ascii = (char *)malloc(plaintext_size / 2);
-        for (size_t i = 0; i < plaintext_size / 2; i++)
+        char *ascii = (char *)malloc((plaintext_size / 2) + 1);
+        memset(ascii, '\0', (plaintext_size / 2) + 1);
+        for (size_t i = 0; i < (plaintext_size / 2); i++)
         {
             char hex[3];
             hex[0] = plaintext[i * 2];
@@ -269,6 +270,7 @@ AuthenticationOperationResult BLAuthenticator::checkCertificateCbk(
 
         asciiCertificate += ascii;
         free(cypheredChunkCertificate);
+        cypheredChunkCertificate = NULL;
 
         chunkSize = 0;
         for (size_t i = 0; i < DATA_SIZE_FIELD_SIZE; i++, auxFileBufferPtr++)
