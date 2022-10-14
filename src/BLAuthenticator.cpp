@@ -292,7 +292,7 @@ AuthenticationOperationResult BLAuthenticator::checkCertificateCbk(
         certificateFile << asciiCertificate;
         certificateFile.close();
 
-        const std::vector<std::string> cmdline{"openssl", "verify", "-verbose", "-CAfile", "pes.pem", "/tmp/certificate.crt"};
+        const std::vector<std::string> cmdline{"openssl", "verify", "-verbose", "-CAfile", "pesca.pem", "/tmp/certificate.crt"};
         std::vector<const char *> argv;
         for (const auto &s : cmdline)
         {
