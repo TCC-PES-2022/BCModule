@@ -7,8 +7,14 @@
 #include <condition_variable>
 
 #include "TFTPServer.h"
-#include "BLUploader.h"
-#include "BLAuthenticator.h"
+
+class BLUploader;
+class BLAuthenticator;
+
+typedef struct {
+    std::string lruName;
+    std::string lruPn;
+} LruInfo;
 
 class BLCommunicator
 {
@@ -21,6 +27,8 @@ public:
 
     void setTftpDataLoaderIp(std::string ip);
     void setTftpDataLoaderPort(int port);
+
+    void addLru(LruInfo lruInfo);
 
     void clearAuthentication(std::string baseFileName);
     bool isAuthenticated(std::string baseFileName);

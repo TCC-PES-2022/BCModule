@@ -6,5 +6,19 @@
   "tftpTargetHardwareServer": {
     "port": 59595,
     "timeout": 300
-  }
+  },
+  "lrus": [
+    {
+      "name": "LRU_EX1_LEFT",
+      "pn": "EXEMPLO3"
+    },
+    {
+      "name": "LRU_EX2_CENTER",
+      "pn": "EXEMPLO7"
+    },
+    {
+      "name": "LRU_EX3_RIGHT",
+      "pn": "EXEMPLO11"
+    }
+  ]
 }

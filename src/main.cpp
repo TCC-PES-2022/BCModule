@@ -104,6 +104,7 @@ void parse_configuration_file()
         exit(1);
     }
 
+    //TODO: Maybe create a configuration class is a better idea.
     communicator->setTftpServerPort(tftpTargetHardwareServerPort->valueint);
     communicator->setTftpServerTimeout(tftpTargetHardwareServerTimeout->valueint);
     communicator->setTftpDataLoaderIp(tftpDataLoaderServerIp->valuestring);
@@ -116,6 +117,26 @@ void parse_configuration_file()
     std::cout << "TFTP DataLoader server IP: " << tftpDataLoaderServerIp->valuestring << std::endl;
     std::cout << "TFTP DataLoader server port: " << tftpDataLoaderServerPort->valueint << std::endl;
     std::cout << "###############################################" << std::endl;
+    std::cout << "Installed LRUs:" << std::endl;
+
+    cJSON *lrus = cJSON_GetObjectItemCaseSensitive(config, "lrus");
+    size_t lruCount = cJSON_GetArraySize(lrus);
+    for (size_t i = 0; i < lruCount; ++i)
+    {
+        cJSON *lru = cJSON_GetArrayItem(lrus, i);
+        cJSON *lruName = cJSON_GetObjectItemCaseSensitive(lru, "name");
+        cJSON *lruPn = cJSON_GetObjectItemCaseSensitive(lru, "pn");
+
+        LruInfo lruInfo;
+        lruInfo.lruName = lruName->valuestring;
+        lruInfo.lruPn = lruPn->valuestring;
+        communicator->addLru(lruInfo);
+
+        std::cout << "NAME: " << lruInfo.lruName << " - PN: " << lruInfo.lruPn << std::endl;
+    }
+    std::cout << "###############################################" << std::endl;
+
+    cJSON_Delete(config);
 }
 
 void register_signal_handlers()

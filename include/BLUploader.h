@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "IFileHandler.h"
+#include "BLCommunicator.h"
 #include "UploadTargetHardwareARINC615A.h"
 
 class BLUploader : public IFileHandler
@@ -16,6 +17,7 @@ public:
 
     void setTftpDataLoaderIp(std::string ip);
     void setTftpDataLoaderPort(int port);
+    void addLru(LruInfo lruInfo);
 
     TftpServerOperationResult handleFile(ITFTPSection *sectionHandler,
                                          FILE **fd,
@@ -51,6 +53,7 @@ private:
 
     std::vector<std::string> receivedImages;
     std::unordered_map<std::string, std::vector<std::pair<std::string, std::string>>> compatibilityFileContent;
+    std::vector<LruInfo> installedLrus;
 
     std::shared_ptr<std::vector<uint8_t>> initFileBuffer;
 

@@ -1,4 +1,3 @@
-#include "BLCommunicator.h"
 #include "BLUploader.h"
 #include "InitializationFileARINC615A.h"
 
@@ -19,6 +18,8 @@ BLUploader::BLUploader()
 
     uploader = nullptr;
     initFileBuffer = nullptr;
+
+    installedLrus.clear();
 }
 
 BLUploader::~BLUploader()
@@ -37,6 +38,8 @@ BLUploader::~BLUploader()
         delete uploader;
         uploader = nullptr;
     }
+
+    installedLrus.clear();
 }
 
 void BLUploader::setTftpDataLoaderIp(std::string ip)
@@ -47,6 +50,10 @@ void BLUploader::setTftpDataLoaderIp(std::string ip)
 void BLUploader::setTftpDataLoaderPort(int port)
 {
     tftpDataLoaderPort = port;
+}
+void BLUploader::addLru(LruInfo lruInfo)
+{
+    installedLrus.push_back(lruInfo);
 }
 
 TftpServerOperationResult BLUploader::handleFile(ITFTPSection *sectionHandler,
@@ -193,7 +200,10 @@ UploadOperationResult BLUploader::checkFilesCbk(
             std::string pnStr;
             for (int i = 0; i < PN_SIZE; i++)
             {
-                pnStr = pnStr + std::to_string(pn[i]);
+                // TO HEX STRING
+                char hex[3];
+                sprintf(hex, "%02X", pn[i]);
+                pnStr = pnStr + hex;
             }
             thiz->receivedImages.push_back(pnStr);
 
@@ -298,8 +308,10 @@ UploadOperationResult BLUploader::transmissionCheckCbk(
     for (long unsigned int i = 0; i < thiz->receivedImages.size(); ++i)
     {
         std::string pn = thiz->receivedImages[i];
-        std::cout << "Checking compatibility with: " << pn << std::endl;
-        if (thiz->compatibilityFileContent.find(pn) == thiz->compatibilityFileContent.end())
+
+        // Check if the PN is in the compatibility file
+        std::unordered_map<std::string, std::vector<std::pair<std::string, std::string>>>::iterator compatibilityIt = thiz->compatibilityFileContent.find(pn);
+        if (compatibilityIt == thiz->compatibilityFileContent.end())
         {
             std::cout << "Image not found in compatibility file: " << pn << std::endl;
             checkDescription = checkDescription + "COMPATIBILITY CHECK ERROR: Image not found in compatibility file: " + pn;
@@ -307,12 +319,36 @@ UploadOperationResult BLUploader::transmissionCheckCbk(
             return UploadOperationResult::UPLOAD_OPERATION_ERROR;
         }
 
-        long unsigned int compatibilitySize = thiz->compatibilityFileContent[pn].size();
-        for (long unsigned int j = 0; j < compatibilitySize; ++j)
+        // Check if LUR is installed
+        std::vector<std::pair<std::string, std::string>> lrus = compatibilityIt->second;
+        bool found = false;
+        for (std::vector<std::pair<std::string, std::string>>::iterator lrusIt = lrus.begin();
+             lrusIt != lrus.end(); ++lrusIt)
         {
-            std::cout << "- " << thiz->compatibilityFileContent[pn][j].first
-                      << " : " << thiz->compatibilityFileContent[pn][j].second
-                      << std::endl;
+            for (std::vector<LruInfo>::iterator installedLursIt = thiz->installedLrus.begin();
+                 installedLursIt != thiz->installedLrus.end(); ++installedLursIt)
+            {
+                // TODO: Is it necessary to check the name too ?
+                //  if (installedLursIt->name == lrusIt->first && installedLursIt->pn == lrusIt->second)
+                if (installedLursIt->lruPn == lrusIt->second)
+                {
+                    found = true;
+                    std::cout << std::endl;
+                    std::cout << "COMPATIBILITY MATCH: " << std::endl;
+                    std::cout << "Image: " << pn << std::endl;
+                    std::cout << "LRU Name: " << installedLursIt->lruName << std::endl;
+                    std::cout << "LRU PN: " << installedLursIt->lruPn << std::endl;
+                    std::cout << std::endl;
+                    break;
+                }
+            }
+        }
+        if (!found)
+        {
+            std::cout << "No compatible LRU installed for: " << pn << std::endl;
+            checkDescription = checkDescription + "COMPATIBILITY CHECK ERROR: No compatible LRU installed for: " + pn;
+            checkDescription = checkDescription + "\n";
+            return UploadOperationResult::UPLOAD_OPERATION_ERROR;
         }
     }
 

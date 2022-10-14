@@ -1,4 +1,6 @@
 #include "BLCommunicator.h"
+#include "BLUploader.h"
+#include "BLAuthenticator.h"
 #include "UploadBaseARINC615A.h"
 #include "InitializationFileARINC615A.h"
 #include "InitializationAuthenticationFile.h"
@@ -55,6 +57,11 @@ void BLCommunicator::setTftpDataLoaderPort(int port)
 {
     uploader->setTftpDataLoaderPort(port);
     authenticator->setTftpDataLoaderPort(port);
+}
+
+void BLCommunicator::addLru(LruInfo lruInfo)
+{
+    uploader->addLru(lruInfo);
 }
 
 bool BLCommunicator::isAuthenticated(std::string baseFileName)
