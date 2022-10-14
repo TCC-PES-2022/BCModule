@@ -198,6 +198,13 @@ AuthenticationOperationResult BLAuthenticator::checkCertificateCbk(
         // Now let's check if the certificate size is correct.
         char *cypheredChunkCertificate = (char *)malloc(chunkSize);
 
+        if (cypheredChunkCertificate == NULL)
+        {
+            std::cout << "*** INTERNAL ERROR ***" << std::endl;
+            checkDescription = "Internal error.";
+            return AuthenticationOperationResult::AUTHENTICATION_OPERATION_ERROR;
+        }
+
         // We receive the certificate in bytes, let's transform to S-Expression.
         for (size_t i = 0; i < chunkSize; i++, auxFileBufferPtr++)
         {
