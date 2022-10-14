@@ -34,6 +34,9 @@ BLAuthenticator::BLAuthenticator()
     initFileBuffer = nullptr;
 
     authenticated = false;
+
+    //TODO: This should not be here in a release version
+    gcry_control(GCRYCTL_DISABLE_SECMEM, 0);
 }
 
 BLAuthenticator::~BLAuthenticator()
