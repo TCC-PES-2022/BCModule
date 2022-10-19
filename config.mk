@@ -10,8 +10,10 @@ DEPS 		:= ARINC615AManager BLSecurityManager
 CXX 		?=
 CXXFLAGS 	:= -Wall -Werror -std=c++11 -pthread
 LDFLAGS  	:= -L$(DEP_PATH)/lib
-LDLIBS   	:= -larinc615a -lblsecurity -ltransfer -ltftp -ltftpd -ltinyxml2
-LDLIBS 		+= -lgcrypt -lgpg-error -lcjson
+LDLIBS   	:= $(DEP_PATH)/lib/libarinc615a.a $(DEP_PATH)/lib/libblsecurity.a 
+LDLIBS		+= $(DEP_PATH)/lib/libtransfer.a $(DEP_PATH)/lib/libtftp.a 
+LDLIBS		+= $(DEP_PATH)/lib/libtftpd.a
+LDLIBS 		+= -lgcrypt -lgpg-error -lcjson -ltinyxml2
 DBGFLAGS 	:= -g -ggdb
 TESTFLAGS 	:= -fprofile-arcs -ftest-coverage --coverage
 
