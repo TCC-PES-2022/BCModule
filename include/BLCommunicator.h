@@ -28,6 +28,10 @@ public:
     void setTftpDataLoaderIp(std::string ip);
     void setTftpDataLoaderPort(int port);
 
+    void setWow(bool wow);
+    void setMaintenanceMode(bool maintenanceMode);
+    void setStopped(bool stopped);
+
     void addLru(LruInfo lruInfo);
 
     void clearAuthentication(std::string baseFileName);
@@ -41,6 +45,10 @@ private:
     BLUploader *uploader;
     TFTPServer *tftpServer;
     std::thread *tftpServerThread;
+
+    bool wow;
+    bool stopped;
+    bool maintenanceMode;
 
     static TftpServerOperationResult sectionStartedCbk(
         ITFTPSection *sectionHandler,

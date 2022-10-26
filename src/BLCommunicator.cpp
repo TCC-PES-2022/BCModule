@@ -15,6 +15,10 @@ BLCommunicator::BLCommunicator()
 
     tftpServerThread = nullptr;
 
+    wow = false;
+    stopped = false;
+    maintenanceMode = false;
+
     tftpServer->setPort(DEFAULT_ARINC615A_TFTP_PORT);
 
     tftpServer->registerSectionStartedCallback(BLCommunicator::sectionStartedCbk, this);
@@ -57,6 +61,21 @@ void BLCommunicator::setTftpDataLoaderPort(int port)
 {
     uploader->setTftpDataLoaderPort(port);
     authenticator->setTftpDataLoaderPort(port);
+}
+
+void BLCommunicator::setWow(bool wow)
+{
+    this->wow = wow;
+}
+
+void BLCommunicator::setMaintenanceMode(bool maintenanceMode)
+{
+    this->maintenanceMode = maintenanceMode;
+}
+
+void BLCommunicator::setStopped(bool stopped)
+{
+    this->stopped = stopped;
 }
 
 void BLCommunicator::addLru(LruInfo lruInfo)
@@ -132,24 +151,48 @@ TftpServerOperationResult BLCommunicator::openFileCbk(
     BLCommunicator *thiz = (BLCommunicator *)context;
 
     std::string filenameStr(filename);
-    if (thiz != nullptr &&
-        ((filenameStr.find(UPLOAD_INITIALIZATION_FILE_EXTENSION) != std::string::npos) ||
-         (filenameStr.find(UPLOAD_LOAD_UPLOAD_REQUEST_FILE_EXTENSION) != std::string::npos)))
+
+    if (thiz->wow && thiz->stopped && thiz->maintenanceMode)
     {
-        return thiz->uploader->handleFile(sectionHandler, fd, filename, mode, bufferSize, context);
-    }
-    else if (thiz != nullptr &&
-        ((filenameStr.find(INITIALIZATION_AUTHENTICATION_FILE_EXTENSION) != std::string::npos) ||
-         (filenameStr.find(LOAD_AUTHENTICATION_REQUEST_FILE_EXTENSION) != std::string::npos)))
-    {
-        return thiz->authenticator->handleFile(sectionHandler, fd, filename, mode, bufferSize, context);
+        if (thiz != nullptr &&
+            ((filenameStr.find(UPLOAD_INITIALIZATION_FILE_EXTENSION) != std::string::npos) ||
+             (filenameStr.find(UPLOAD_LOAD_UPLOAD_REQUEST_FILE_EXTENSION) != std::string::npos)))
+        {
+            return thiz->uploader->handleFile(sectionHandler, fd, filename, mode, bufferSize, context);
+        }
+        else if (thiz != nullptr &&
+                 ((filenameStr.find(INITIALIZATION_AUTHENTICATION_FILE_EXTENSION) != std::string::npos) ||
+                  (filenameStr.find(LOAD_AUTHENTICATION_REQUEST_FILE_EXTENSION) != std::string::npos)))
+        {
+            return thiz->authenticator->handleFile(sectionHandler, fd, filename, mode, bufferSize, context);
+        }
+        else
+        {
+            std::cout << "Operation is not supported." << std::endl;
+            InitializationFileARINC615A initFile(filenameStr);
+            initFile.setOperationAcceptanceStatusCode(INITIALIZATION_UPLOAD_IS_NOT_SUPPORTED);
+            initFile.setStatusDescription("Operation is not supported.");
+
+            std::shared_ptr<std::vector<uint8_t>> fileBuffer = std::make_shared<
+                std::vector<uint8_t>>();
+            fileBuffer->clear();
+            fileBuffer->resize(0);
+            initFile.serialize(fileBuffer);
+
+            unsigned char *initFileBuffer = fileBuffer->data();
+            FILE *fpInitFile = fmemopen(initFileBuffer, fileBuffer->size(), mode);
+            fseek(fpInitFile, 0, SEEK_SET);
+
+            *fd = fpInitFile;
+            *bufferSize = fileBuffer->size();
+        }
     }
     else
     {
-        std::cout << "Operation is not supported." << std::endl;
+        std::cout << "Operation is denied" << std::endl;
         InitializationFileARINC615A initFile(filenameStr);
-        initFile.setOperationAcceptanceStatusCode(INITIALIZATION_UPLOAD_IS_NOT_SUPPORTED);
-        initFile.setStatusDescription("Operation is not supported.");
+        initFile.setOperationAcceptanceStatusCode(INITIALIZATION_UPLOAD_IS_DENIED);
+        // initFile.setStatusDescription("Operation is not supported.");
 
         std::shared_ptr<std::vector<uint8_t>> fileBuffer = std::make_shared<
             std::vector<uint8_t>>();

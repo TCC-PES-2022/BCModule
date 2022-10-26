@@ -116,6 +116,38 @@ void parse_configuration_file()
     std::cout << "TFTP server timeout: " << tftpTargetHardwareServerTimeout->valueint << std::endl;
     std::cout << "TFTP DataLoader server IP: " << tftpDataLoaderServerIp->valuestring << std::endl;
     std::cout << "TFTP DataLoader server port: " << tftpDataLoaderServerPort->valueint << std::endl;
+
+    cJSON *wow = cJSON_GetObjectItemCaseSensitive(config, "wow");
+    if (wow == NULL)
+    {
+        std::cout << "Error parsing configuration file" << std::endl;
+        exit(1);
+    }
+
+    communicator->setWow(cJSON_IsTrue(wow));
+
+    cJSON *stopped = cJSON_GetObjectItemCaseSensitive(config, "stopped");
+    if (stopped == NULL)
+    {
+        std::cout << "Error parsing configuration file" << std::endl;
+        exit(1);
+    }
+
+    communicator->setStopped(cJSON_IsTrue(stopped));
+
+    cJSON *maintenanceMode = cJSON_GetObjectItemCaseSensitive(config, "maintenanceMode");
+    if (maintenanceMode == NULL)
+    {
+        std::cout << "Error parsing configuration file" << std::endl;
+        exit(1);
+    }
+
+    communicator->setMaintenanceMode(cJSON_IsTrue(maintenanceMode));
+
+    std::cout << "###############################################" << std::endl;
+    std::cout << "WOW: " << cJSON_IsTrue(wow) << std::endl;
+    std::cout << "Stopped: " << cJSON_IsTrue(stopped) << std::endl;
+    std::cout << "Maintenance mode: " << cJSON_IsTrue(maintenanceMode) << std::endl;
     std::cout << "###############################################" << std::endl;
     std::cout << "Installed LRUs:" << std::endl;
 

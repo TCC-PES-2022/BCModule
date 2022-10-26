@@ -7,6 +7,9 @@
     "port": 59595,
     "timeout": 300
   },
+  "wow": true,
+  "stopped": true,
+  "maintenanceMode": true,
   "lrus": [
     {
       "name": "LRU_EX1_LEFT",
