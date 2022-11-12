@@ -177,6 +177,9 @@ UploadOperationResult BLUploader::checkFilesCbk(
 
     BLUploader *thiz = (BLUploader *)context;
 
+    thiz->compatibilityFileContent.clear();
+    thiz->receivedImages.clear();
+
     std::cout << "-> Integrity check" << std::endl;
     bool integrityCheckOk = true;
     for (auto &file : files)
