@@ -178,10 +178,12 @@ UploadOperationResult BLUploader::checkFilesCbk(
     BLUploader *thiz = (BLUploader *)context;
 
     std::cout << "-> Integrity check" << std::endl;
+    bool integrityCheckOk = true;
     for (auto &file : files)
     {
         std::cout << "Checking file: " << file << std::endl;
 
+        //TODO: Try to load with tinyxml2 to check if is a valid XML
         if (file.find(".xml") == std::string::npos)
         {
 
@@ -191,6 +193,8 @@ UploadOperationResult BLUploader::checkFilesCbk(
                 std::cout << "File not found: " << file << std::endl;
                 checkDescription = checkDescription + "INTEGRITY CHECK ERROR: File not found: " + file;
                 checkDescription = checkDescription + "\n";
+                integrityCheckOk = false;
+                continue;
             }
 
             fseek(fp, 0, SEEK_SET);
@@ -229,6 +233,8 @@ UploadOperationResult BLUploader::checkFilesCbk(
                 std::cout << "File corrupted: " << file << std::endl;
                 checkDescription = checkDescription + "INTEGRITY CHECK ERROR: File corrupted: " + file;
                 checkDescription = checkDescription + "\n";
+                integrityCheckOk = false;
+                continue;
             }
         }
         else
@@ -242,7 +248,8 @@ UploadOperationResult BLUploader::checkFilesCbk(
                 std::cout << "COMPATIBILITY element not found" << std::endl;
                 checkDescription = checkDescription + "INTEGRITY CHECK ERROR: Compatibility file format error";
                 checkDescription = checkDescription + "\n";
-                return UploadOperationResult::UPLOAD_OPERATION_ERROR;
+                integrityCheckOk = false;
+                continue;
             }
 
             tinyxml2::XMLElement *pSoftwareNode = root->FirstChildElement("SOFTWARE");
@@ -254,7 +261,8 @@ UploadOperationResult BLUploader::checkFilesCbk(
                     std::cout << "PN attribute not found" << std::endl;
                     checkDescription = checkDescription + "INTEGRITY CHECK ERROR: Compatibility file format error";
                     checkDescription = checkDescription + "\n";
-                    return UploadOperationResult::UPLOAD_OPERATION_ERROR;
+                    integrityCheckOk = false;
+                    continue;
                 }
 
                 if (!pSoftwareNode->FirstChildElement("LRU"))
@@ -262,7 +270,8 @@ UploadOperationResult BLUploader::checkFilesCbk(
                     std::cout << "LRU element not found" << std::endl;
                     checkDescription = checkDescription + "INTEGRITY CHECK ERROR: Compatibility file format error";
                     checkDescription = checkDescription + "\n";
-                    return UploadOperationResult::UPLOAD_OPERATION_ERROR;
+                    integrityCheckOk = false;
+                    continue;
                 }
 
                 tinyxml2::XMLElement *pLruNode = pSoftwareNode->FirstChildElement("LRU");
@@ -276,7 +285,8 @@ UploadOperationResult BLUploader::checkFilesCbk(
                         std::cout << "LRU name or PN attribute not found" << std::endl;
                         checkDescription = checkDescription + "INTEGRITY CHECK ERROR: Compatibility file format error";
                         checkDescription = checkDescription + "\n";
-                        return UploadOperationResult::UPLOAD_OPERATION_ERROR;
+                        integrityCheckOk = false;
+                        continue;
                     }
 
                     thiz->compatibilityFileContent[pn].push_back(std::make_pair(name, lruPn));
@@ -285,6 +295,12 @@ UploadOperationResult BLUploader::checkFilesCbk(
         }
     }
 
+    if (!integrityCheckOk)
+    {
+        std::cout << "Integrity check failed !" << std::endl;
+        return UploadOperationResult::UPLOAD_OPERATION_ERROR;
+    }
+    
     std::cout << "All good !" << std::endl;
     return UploadOperationResult::UPLOAD_OPERATION_OK;
 }
@@ -305,6 +321,7 @@ UploadOperationResult BLUploader::transmissionCheckCbk(
 
     std::cout << "-> Checking compatibility" << std::endl;
 
+    bool compatibilityCheckOk = true;
     for (long unsigned int i = 0; i < thiz->receivedImages.size(); ++i)
     {
         std::string pn = thiz->receivedImages[i];
@@ -316,7 +333,8 @@ UploadOperationResult BLUploader::transmissionCheckCbk(
             std::cout << "Image not found in compatibility file: " << pn << std::endl;
             checkDescription = checkDescription + "COMPATIBILITY CHECK ERROR: Image not found in compatibility file: " + pn;
             checkDescription = checkDescription + "\n";
-            return UploadOperationResult::UPLOAD_OPERATION_ERROR;
+            compatibilityCheckOk = false;
+            continue;
         }
 
         // Check if LUR is installed
@@ -348,8 +366,15 @@ UploadOperationResult BLUploader::transmissionCheckCbk(
             std::cout << "No compatible LRU installed for: " << pn << std::endl;
             checkDescription = checkDescription + "COMPATIBILITY CHECK ERROR: No compatible LRU installed for: " + pn;
             checkDescription = checkDescription + "\n";
-            return UploadOperationResult::UPLOAD_OPERATION_ERROR;
+            compatibilityCheckOk = false;
+            continue;
         }
+    }
+
+    if (!compatibilityCheckOk)
+    {
+        std::cout << "Compatibility check failed !" << std::endl;
+        return UploadOperationResult::UPLOAD_OPERATION_ERROR;
     }
 
     std::cout << "All good !" << std::endl;
