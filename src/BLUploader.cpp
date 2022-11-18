@@ -76,6 +76,9 @@ TftpServerOperationResult BLUploader::handleFile(ITFTPSection *sectionHandler,
         std::cout << "- Load Upload Initialization" << std::endl;
         InitializationFileARINC615A initFile(cleanFileNameStr);
 
+        this->compatibilityFileContent.clear();
+        this->receivedImages.clear();
+
         // TODO: This check should be called by the UploadTargetHardwareARINC615A
         //       implement a callback for it.
         if (communicator->isAuthenticated(baseFileNameStr))
@@ -176,9 +179,6 @@ UploadOperationResult BLUploader::checkFilesCbk(
     }
 
     BLUploader *thiz = (BLUploader *)context;
-
-    thiz->compatibilityFileContent.clear();
-    thiz->receivedImages.clear();
 
     std::cout << "-> Integrity check" << std::endl;
     bool integrityCheckOk = true;
