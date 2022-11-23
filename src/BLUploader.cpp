@@ -200,6 +200,14 @@ UploadOperationResult BLUploader::checkFilesCbk(
                 continue;
             }
 
+            fseek(fp, 0, SEEK_END);
+            if (ftell(fp) <= (PN_SIZE + SHA256_SIZE))
+            {
+                fclose(fp);
+                integrityCheckOk = false;
+                continue;
+            }
+
             fseek(fp, 0, SEEK_SET);
             unsigned char pn[PN_SIZE];
             fread(pn, 1, PN_SIZE, fp);
