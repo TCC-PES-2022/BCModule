@@ -8,7 +8,7 @@ To clone this repository, run:
 
     git clone https://github.com/TCC-PES-2022/BLModule.git
     cd BLModule
-    git submodule update --init --recursive
+    git submodule update --init --recursive --remote
 
 Before building your project, you may need to install some dependencies. To do so, run:
 
